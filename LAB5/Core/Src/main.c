@@ -58,7 +58,7 @@ int delaytime = 100;
 int frequency = 5;
 
 uint8_t RxBuffer[2];
-uint8_t TxBuffer[40];
+uint8_t TxBuffer[100];
 uint8_t TextBuffer[500];
 
 
@@ -314,11 +314,11 @@ void ReadButton1() {
 			switch(menu)
 			{
 			case 0:
-				sprintf((char*)TextBuffer, "     Menu 0 :  LED Control\r\n   a: Speed Up   +1Hz\r\n   s: Speed Down -1Hz\r\n   d: On/Off\r\n   x: Back\r\n----------------------------------\r\n\0");
+				sprintf((char*)TextBuffer, "----------------------------------\r\n\     Menu 0 :  LED Control\r\n   a: Speed Up   +1Hz\r\n   s: Speed Down -1Hz\r\n   d: On/Off\r\n   x: Back\r\n----------------------------------\r\n\0");
 				HAL_UART_Transmit_IT(&huart2,TextBuffer, strlen((char*)TextBuffer));
 				break;
 			case 1:
-				sprintf((char*)TextBuffer, "     Menu 1 : Button Status\r\n   x: Back\r\n   Button 1 Pressed\r\n----------------------------------\r\n\0");
+				sprintf((char*)TextBuffer, "----------------------------------\r\n\     Menu 1 : Button Status\r\n   x: Back\r\n   Button 1 Pressed\r\n----------------------------------\r\n\0");
 				HAL_UART_Transmit_IT(&huart2,TextBuffer, strlen((char*)TextBuffer));
 				break;
 			case 2:
@@ -367,15 +367,14 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 				break;
 			case 'd':
 			    HAL_GPIO_WritePin(LD2_GPIO_Port, LD2_Pin, GPIO_PIN_RESET);
-			    sprintf((char*)TxBuffer, "\r\n Off\r\n\0");
+			    sprintf((char*)TxBuffer, "LED Off \r\n\0");
 			    HAL_UART_Transmit_IT(&huart2, TxBuffer , strlen((char*)TxBuffer));
 			    RxBuffer[0] = ' ';
 				break;
 			case 'x':
-				sprintf((char*)TextBuffer, "----------------------------------\r\n     Unpressed\r\n\0");
-				HAL_UART_Transmit_IT(&huart2,TxBuffer, strlen((char*)TxBuffer));
+				sprintf((char*)TxBuffer, "Button1 Unpressed\r\n\0");
+				HAL_UART_Transmit_IT(&huart2, TxBuffer, strlen((char*)TxBuffer));
 				menu = 2;
-				RxBuffer[0] = ' ';
 			break;
 			default :
 				sprintf((char*)TxBuffer, "Wrong Button\r\n\0",frequency);
@@ -388,10 +387,9 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 		switch (RxBuffer[0])
 		{
 			case 'x':
-			sprintf((char*)TextBuffer, "----------------------------------\r\n     Unpressed\r\n\0");
-			HAL_UART_Transmit_IT(&huart2,TxBuffer, strlen((char*)TxBuffer));
+			sprintf((char*)TxBuffer, "Button1 Unpressed\r\n\0");
+			HAL_UART_Transmit_IT(&huart2, TxBuffer, strlen((char*)TxBuffer));
 			menu = 2;
-			RxBuffer[0] = ' ';
 			break;
 
 			default :
