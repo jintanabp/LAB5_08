@@ -126,7 +126,6 @@ int main(void)
   while (1)
   {
 	  ReadButton1();
-	  //ClickButton();
 	  DummyTask();
     /* USER CODE END WHILE */
 
@@ -319,7 +318,7 @@ void ReadButton1() {
 				HAL_UART_Transmit_IT(&huart2,TextBuffer, strlen((char*)TextBuffer));
 				break;
 			case 1:
-				sprintf((char*)TextBuffer, "     Menu 1 : Button Status\r\n   x: Back\r\n   Show Button Status\r\n----------------------------------\r\n\0");
+				sprintf((char*)TextBuffer, "     Menu 1 : Button Status\r\n   x: Back\r\n   Button 1 Pressed\r\n----------------------------------\r\n\0");
 				HAL_UART_Transmit_IT(&huart2,TextBuffer, strlen((char*)TextBuffer));
 				break;
 			case 2:
@@ -342,7 +341,7 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 	if (huart == &huart2)
 	{
 		RxBuffer[1] = '\0';
-		sprintf((char*)TxBuffer, "Received : %s\r\n", RxBuffer);
+		sprintf((char*)TxBuffer, "Received : %s\r\n\0", RxBuffer);
 		HAL_UART_Transmit_IT(&huart2, TxBuffer , strlen((char*)TxBuffer));
 
 		HAL_UART_Receive_IT(&huart2, RxBuffer, 1);
@@ -355,35 +354,52 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 			case 'a':
 				frequency += 1 ;
 				delaytime = 1000 / (frequency *2);
-				sprintf((char*)TxBuffer, "Frequency : %d\r\n",frequency);
+				sprintf((char*)TxBuffer, "Frequency : %d\r\n\0",frequency);
 				HAL_UART_Transmit_IT(&huart2, TxBuffer , strlen((char*)TxBuffer));
 				RxBuffer[0] = ' ';
 				break;
 			case 's':
 				frequency -= 1 ;
 				delaytime = 1000 / (frequency *2);
-				sprintf((char*)TxBuffer, "Frequency : %d\r\n",frequency);
+				sprintf((char*)TxBuffer, "Frequency : %d\r\n\0",frequency);
 				HAL_UART_Transmit_IT(&huart2, TxBuffer , strlen((char*)TxBuffer));
 				RxBuffer[0] = ' ';
 				break;
 			case 'd':
-				if (HAL_GPIO_ReadPin(LD2_GPIO_Port, LD2_Pin) == 1)
-				{
-					HAL_GPIO_WritePin(LD2_GPIO_Port, LD2_Pin, 0);
-					sprintf((char*)TxBuffer, "Off");
-					HAL_UART_Transmit_IT(&huart2, TxBuffer , strlen((char*)TxBuffer));
-				}
-				else
-				{
-					HAL_GPIO_WritePin(LD2_GPIO_Port, LD2_Pin, 1);
-					sprintf((char*)TxBuffer, "On");
-					HAL_UART_Transmit_IT(&huart2, TxBuffer , strlen((char*)TxBuffer));
-				}
-				RxBuffer[0] = ' ';
+			    HAL_GPIO_WritePin(LD2_GPIO_Port, LD2_Pin, GPIO_PIN_RESET);
+			    sprintf((char*)TxBuffer, "\r\n Off\r\n\0");
+			    HAL_UART_Transmit_IT(&huart2, TxBuffer , strlen((char*)TxBuffer));
+			    RxBuffer[0] = ' ';
 				break;
+			case 'x':
+				sprintf((char*)TextBuffer, "----------------------------------\r\n     Unpressed\r\n\0");
+				HAL_UART_Transmit_IT(&huart2,TxBuffer, strlen((char*)TxBuffer));
+				menu = 2;
+				RxBuffer[0] = ' ';
+			break;
+			default :
+				sprintf((char*)TxBuffer, "Wrong Button\r\n\0",frequency);
+				HAL_UART_Transmit_IT(&huart2, TxBuffer , strlen((char*)TxBuffer));
+			break;
+	}
+	}
+	else if(menu = 1)
+	{
+		switch (RxBuffer[0])
+		{
+			case 'x':
+			sprintf((char*)TextBuffer, "----------------------------------\r\n     Unpressed\r\n\0");
+			HAL_UART_Transmit_IT(&huart2,TxBuffer, strlen((char*)TxBuffer));
+			menu = 2;
+			RxBuffer[0] = ' ';
+			break;
 
+			default :
+				sprintf((char*)TxBuffer, "Wrong Button\r\n\0",frequency);
+				HAL_UART_Transmit_IT(&huart2, TxBuffer , strlen((char*)TxBuffer));
+			break;
 		}
-}
+	}
 }
 
 
