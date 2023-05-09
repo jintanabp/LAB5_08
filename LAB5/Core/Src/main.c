@@ -53,10 +53,11 @@ struct _GPIOState
 };
 // declare variable
 struct _GPIOState Button1;
-int menu ;
+int menu = 2 ;
 
-uint8_t RxBuffer[5];
+uint8_t RxBuffer[1];
 uint8_t TxBuffer[40];
+uint8_t OneBuffer[500];
 
 
 
@@ -114,7 +115,7 @@ int main(void)
 //	  uint8_t text[] = "HELLO FIBO";
 //	  HAL_UART_Transmit(&huart2, text, 11, 10);
 
-  UARTDMAConfig();
+  UARTInterruptConfig();
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -269,14 +270,14 @@ static void MX_GPIO_Init(void)
 //			10000);
 //	if (HAL_status == HAL_OK) {
 //		RxBuffer[10] = '\0';
-//		sprintf((char*) TxBuffer, "Received : %s\r\n", RxBuffer);
-//		HAL_UART_Transmit(&huart2, TxBuffer, strlen((char*) TxBuffer), 10);
+//		sprintf((char*) , "Received : %s\r\n", RxBuffer);
+//		HAL_UART_Transmit(&huart2, , strlen((char*) ), 10);
 //	} else if (HAL_status == HAL_TIMEOUT) {
 //		uint32_t lastCharPos = huart2.RxXferSize - huart2.RxXferCount;
 //		RxBuffer[lastCharPos] = '\0';
 //
-//		sprintf((char*)TxBuffer, "Received Timeout : %s\r\n", RxBuffer);
-//		HAL_UART_Transmit(&huart2, TxBuffer, strlen((char*)TxBuffer), 10);
+//		sprintf((char*), "Received Timeout : %s\r\n", RxBuffer);
+//		HAL_UART_Transmit(&huart2, , strlen((char*)), 10);
 //	}
 //}
 
@@ -291,49 +292,79 @@ void DummyTask()
 }
 
 void ReadButton1() {
-	Button1.Current = HAL_GPIO_ReadPin(GPIOC, GPIO_PIN_13);
-	//detect button press
-	if (Button1.Last == GPIO_PIN_SET && Button1.Current == GPIO_PIN_RESET) {
-		if (menu == 0) {menu = 1;}
-		else {menu = 0;}
-	} Button1.Last = Button1.Current;
+//	Button1.Current = HAL_GPIO_ReadPin(GPIOC, GPIO_PIN_13);
+//	//detect button press
+//	if (Button1.Last == GPIO_PIN_SET && Button1.Current == GPIO_PIN_RESET) {
+//		if (menu == 0) {menu = 1;}
+//		else {menu = 0;}
+//	}
+//	else
+//	{
+//		menu = 3;
+//	}
+//	Button1.Last = Button1.Current;
 
-	switch(menu)
-	{
-	case 0:
-//		textmenu0 = "   MENU 0 : LED Control     ";
-//		HAL_UART_Transmit_DMA(&huart2, textmenu0 , strlen((char*)texmenu0));
-//		sprintf()
-		break;
-	}
+		Button1.Current = HAL_GPIO_ReadPin(GPIOC, GPIO_PIN_13);
+		if (Button1.Current == GPIO_PIN_RESET && Button1.Last == GPIO_PIN_SET )
+		{
+			if(menu == 2)
+			{
+				menu = 0;
+			}
+			else if (menu == 0)
+			{
+				menu = 1;
+			}
+			else if (menu == 1)
+			{
+				menu = 0;
+			}
+
+			switch(menu)
+			{
+			case 0:
+				sprintf((char*)OneBuffer, "     Menu 0 :  LED Control\r\n   a: Speed Up   +1Hz\r\n   s: Speed Down -1Hz\r\n   d: On/Off\r\n   x: Back\r\n----------------------------------\r\n\0");
+				HAL_UART_Transmit_IT(&huart2,OneBuffer, strlen((char*)OneBuffer));
+				break;
+			case 1:
+				sprintf((char*)OneBuffer, "     Menu 1 : Button Status\r\n   x: Back\r\n   Show Button Status\r\n----------------------------------\r\n\0");
+				HAL_UART_Transmit_IT(&huart2,OneBuffer, strlen((char*)OneBuffer));
+				break;
+			case 2:
+				sprintf((char*)OneBuffer, "----------------------------------\r\n     Unpressed\r\n\0");
+				HAL_UART_Transmit_IT(&huart2,OneBuffer, strlen((char*)OneBuffer));
+				break;
+			}
+		}
+		Button1.Last = Button1.Current;
 
 }
 
-//void UARTInterruptConfig() {
-//	HAL_UART_Receive_IT(&huart2, RxBuffer, 10);
-//}
+void UARTInterruptConfig() {
+	HAL_UART_Receive_IT(&huart2, RxBuffer, 1);
+}
 
 //void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart) {
 //	if (huart == &huart2) {
 //		RxBuffer[10] = '\0';
 //
-//		sprintf((char*)TxBuffer, "Received : %s\r\n", RxBuffer);
-//		HAL_UART_Transmit_IT(&huart2, TxBuffer, strlen((char*)TxBuffer));
+//		sprintf((char*), "Received : %s\r\n", RxBuffer);
+//		HAL_UART_Transmit_IT(&huart2, , strlen((char*)));
 //
 //		HAL_UART_Receive_IT(&huart2, RxBuffer, 10);
 //	}
 //}
 
-void UARTDMAConfig() {
-	HAL_UART_Receive_DMA(&huart2, RxBuffer, 2);
-}
+//void UARTDMAConfig() {
+//	HAL_UART_Receive_DMA(&huart2, RxBuffer, 2);
+//}
 
 void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart) {
 	if (huart == &huart2)
 	{
 		RxBuffer[1] = '\0';
 		sprintf((char*)TxBuffer, "Received : %s\r\n", RxBuffer);
-		HAL_UART_Transmit_DMA(&huart2, TxBuffer, strlen((char*)TxBuffer));
+		HAL_UART_Transmit_IT(&huart2, TxBuffer , strlen((char*)TxBuffer));
 	}
 }
 
