@@ -56,6 +56,7 @@ struct _GPIOState Button1;
 int menu = 2 ;
 int delaytime = 100;
 int frequency = 5;
+int LED = 0;
 
 uint8_t RxBuffer[2];
 uint8_t TxBuffer[100];
@@ -126,7 +127,11 @@ int main(void)
   while (1)
   {
 	  ReadButton1();
-	  DummyTask();
+	  if(LED == 1)
+	  {
+		  DummyTask();
+	  }
+
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
@@ -314,15 +319,15 @@ void ReadButton1() {
 			switch(menu)
 			{
 			case 0:
-				sprintf((char*)TextBuffer, "----------------------------------\r\n\     Menu 0 :  LED Control\r\n   a: Speed Up   +1Hz\r\n   s: Speed Down -1Hz\r\n   d: On/Off\r\n   x: Back\r\n----------------------------------\r\n\0");
+				sprintf((char*)TextBuffer, "\r\n\----------------------------------\r\n\     Menu 0 :  LED Control\r\n   a: Speed Up   +1Hz\r\n   s: Speed Down -1Hz\r\n   d: On/Off\r\n   x: Back\r\n----------------------------------\r\n\0");
 				HAL_UART_Transmit_IT(&huart2,TextBuffer, strlen((char*)TextBuffer));
 				break;
 			case 1:
-				sprintf((char*)TextBuffer, "----------------------------------\r\n\     Menu 1 : Button Status\r\n   x: Back\r\n   Button 1 Pressed\r\n----------------------------------\r\n\0");
+				sprintf((char*)TextBuffer, "\r\n\----------------------------------\r\n\     Menu 1 : Button Status\r\n   x: Back\r\n   Button 1 Pressed | LED %d\r\n----------------------------------\r\n\0",LED);
 				HAL_UART_Transmit_IT(&huart2,TextBuffer, strlen((char*)TextBuffer));
 				break;
 			case 2:
-				sprintf((char*)TextBuffer, "----------------------------------\r\n     Unpressed\r\n\0");
+				sprintf((char*)TextBuffer, "\r\n\----------------------------------\r\n     Unpressed\r\n\0");
 				HAL_UART_Transmit_IT(&huart2,TextBuffer, strlen((char*)TextBuffer));
 				break;
 			}
@@ -354,30 +359,43 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 			case 'a':
 				frequency += 1 ;
 				delaytime = 1000 / (frequency *2);
-				sprintf((char*)TxBuffer, "Frequency : %d\r\n\0",frequency);
+				sprintf((char*)TxBuffer, "\r\nFrequency %d   \0",frequency);
 				HAL_UART_Transmit_IT(&huart2, TxBuffer , strlen((char*)TxBuffer));
 				RxBuffer[0] = ' ';
 				break;
 			case 's':
 				frequency -= 1 ;
+				if (frequency <= 1)
+				{
+					frequency = 1;
+				}
 				delaytime = 1000 / (frequency *2);
-				sprintf((char*)TxBuffer, "Frequency : %d\r\n\0",frequency);
+				sprintf((char*)TxBuffer, "\r\nFrequency %d   \0",frequency);
 				HAL_UART_Transmit_IT(&huart2, TxBuffer , strlen((char*)TxBuffer));
 				RxBuffer[0] = ' ';
 				break;
 			case 'd':
-			    HAL_GPIO_WritePin(LD2_GPIO_Port, LD2_Pin, GPIO_PIN_RESET);
-			    sprintf((char*)TxBuffer, "LED Off \r\n\0");
-			    HAL_UART_Transmit_IT(&huart2, TxBuffer , strlen((char*)TxBuffer));
-			    RxBuffer[0] = ' ';
+				if (LED == 0)
+				{
+					LED = 1;
+				    sprintf((char*)TxBuffer, "\r\nLED On     \0");
+				    HAL_UART_Transmit_IT(&huart2, TxBuffer , strlen((char*)TxBuffer));
+				}
+				else if(LED == 1)
+				{
+					LED = 0;
+				    sprintf((char*)TxBuffer, "\r\nLED Off     \0");
+				    HAL_UART_Transmit_IT(&huart2, TxBuffer , strlen((char*)TxBuffer));
+				}
+//			    RxBuffer[0] = ' ';
 				break;
 			case 'x':
-				sprintf((char*)TxBuffer, "Button1 Unpressed\r\n\0");
+				sprintf((char*)TxBuffer, "\r\nUnpresse    \0");
 				HAL_UART_Transmit_IT(&huart2, TxBuffer, strlen((char*)TxBuffer));
 				menu = 2;
 			break;
 			default :
-				sprintf((char*)TxBuffer, "Wrong Button\r\n\0",frequency);
+				sprintf((char*)TxBuffer, "\r\nWrong Button     \0",frequency);
 				HAL_UART_Transmit_IT(&huart2, TxBuffer , strlen((char*)TxBuffer));
 			break;
 	}
@@ -387,13 +405,13 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 		switch (RxBuffer[0])
 		{
 			case 'x':
-			sprintf((char*)TxBuffer, "Button1 Unpressed\r\n\0");
+			sprintf((char*)TxBuffer, "\r\nUnpressed     \0");
 			HAL_UART_Transmit_IT(&huart2, TxBuffer, strlen((char*)TxBuffer));
 			menu = 2;
 			break;
 
 			default :
-				sprintf((char*)TxBuffer, "Wrong Button\r\n\0",frequency);
+				sprintf((char*)TxBuffer, "\r\nWrong Button     \0",frequency);
 				HAL_UART_Transmit_IT(&huart2, TxBuffer , strlen((char*)TxBuffer));
 			break;
 		}
